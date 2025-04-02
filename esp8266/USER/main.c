@@ -1,164 +1,568 @@
 #include "stm32f10x.h"                  // Device header
-#include "led.h"
-#include "delay.h"
-#include "sys.h"
-#include "OLED.h"
+#include "adcx.h"
+#include "ldr.h"
+#include "oled.h"
 #include "dht11.h"
-#include "timer.h"
-#include "beep.h"
-#include "stdio.h"
+#include "pwm.h"
+#include "led.h"
 #include "key.h"
+#include "tim2.h"   
+#include "tim3.h"   
+#include "hc_sr501.h"
+#include "hc_sr04.h"
+#include "sensormodules.h"
 #include "usart.h"
-#include "exti.h"
-//#include "esp8266.h"
-//#include "onenet.h"
+#include "gizwits_product.h"
+#include "myrtc.h"
+#include "flash.h"
+#include "iwdg.h"
 
-u8 alarmFlag = 0; //是否报警
-u8 alarm_is_free=10;//报警器是否被手动操作，手动-0
-u8 humidityH;  //湿度
-u8 humidityL;
-u8 temperatureH; //温度
-u8 temperatureL;
-u8 buffer[5];
-extern char oledBuf[20];
-//u8 ESP8266_INIT_OK = 0;//esp8266初始化完成标志
-//const char *topics[] = {"/mysmarthome/sub"};
+#define KEY_Long1	11
 
-//const char *devSubTopic[] = {"/mysmarthome/sub"};
-//const char devPubTopic[] = "/mysmarthome/pub";
+#define KEY_1	1
+#define KEY_2	2
+#define KEY_3	3
+#define KEY_4	4
+
+#define FLASH_START_ADDR	0x0801f000	//写入的起始地址
+
+uint8_t hc501;						//存储人体信号
+uint8_t systemModel = 0;				//存储系统当前模式
+
+uint8_t hour,minute,second;			//时 分 秒
+uint8_t menu = 1;					//显示菜单变量
+
+
+
+SensorModules sensorData;	//声明传感器数据结构体变量
+SensorThresholdValue Sensorthreshold;	//声明传感器阈值结构体变量
+
+enum 
+{
+	display_page = 1,
+	settingsPage,
+	timeSettingsPage
+	
+}MenuPages;
+
+/**
+  * @brief  显示主页面固定内容
+  * @param  无
+  * @retval 无
+  */
+void OLED_Menu(void)
+{
+	//显示“Time：”
+	OLED_ShowString(1, 1, "Time");
+	OLED_ShowChar(1, 5, ':');
+	
+	//显示“温度：”
+	OLED_ShowChinese(2,1, 0);
+	OLED_ShowChinese(2,2, 1);
+	OLED_ShowChar(2, 5, ':');
+	//显示“湿度：”
+	OLED_ShowChinese(2,5, 2);
+	OLED_ShowChinese(2,6, 1);
+	OLED_ShowChar(2, 13, ':');	
+	
+	//显示“光强：”
+	OLED_ShowChinese(3,1, 4);
+	OLED_ShowChinese(3,2, 5);
+	OLED_ShowChar(3, 5, ':');
+	//显示“距离：”
+	OLED_ShowChinese(3,5, 17);
+	OLED_ShowChinese(3,6, 18);
+	OLED_ShowChar(3, 13, ':');
+		
+	//显示“亮度：”
+	OLED_ShowChinese(4,1, 6);
+	OLED_ShowChinese(4,2, 1);
+	OLED_ShowChar(4, 5, ':');
+}
+
+/**
+  * @brief  显示主页面的传感器数据等信息
+  * @param  无
+  * @retval 无
+  */
+void OLED_Menu_SensorData(void)
+{
+		//显示时间数据
+		OLED_ShowNum(1,6,MyRTC_Time[3],2);
+		OLED_ShowChar(1,8,':');
+		OLED_ShowNum(1,9,MyRTC_Time[4],2);
+		OLED_ShowChar(1,11,':');
+		OLED_ShowNum(1,12,MyRTC_Time[5],2);
+	
+	
+		//显示温度数据
+		OLED_ShowNum(2, 6, sensorData.temp, 2);
+		OLED_ShowChar(2, 8, 'C');	
+
+		//显示湿度数据
+		OLED_ShowNum(2, 14, sensorData.humi, 2);	
+		OLED_ShowChar(2, 16, '%');	
+
+		//显示光强数据
+		OLED_ShowNum(3, 6, sensorData.lux, 3);	
+
+		//显示距离数据
+		OLED_ShowNum(3, 14, sensorData.distance, 2);
+
+		//显示亮度等级
+		OLED_ShowNum(4, 6, ledDutyRatio, 3);
+		OLED_ShowChar(4, 9, '%');	
+	
+		//显示是否有人
+		if (sensorData.people)
+		{
+			OLED_ShowChinese(1, 8, 19);
+		}
+		else
+		{
+			OLED_ShowString(1, 15, "  ");	
+		}	
+		
+		//显示系统当前模式 手动模式 or 自动模式
+		if (systemModel)
+		{
+			//显示“自动”
+			OLED_ShowChinese(4, 7, 9);
+			OLED_ShowChinese(4, 8, 10);					
+		}
+		else
+		{
+			//显示“手动”
+			OLED_ShowChinese(4, 7, 11);
+			OLED_ShowChinese(4, 8, 12);			
+		}
+}
+
+/**
+  * @brief  显示系统设置界面
+  * @param  无
+  * @retval 无
+  */
+void OLED_SetInterfacevoid(void)
+{
+	//显示“系统设置界面”
+	OLED_ShowChinese(1, 2, 20);
+	OLED_ShowChinese(1, 3, 21);
+	OLED_ShowChinese(1, 4, 22);
+	OLED_ShowChinese(1, 5, 23);
+	OLED_ShowChinese(1, 6, 24);
+	OLED_ShowChinese(1, 7, 25);	
+	
+	//显示“系统时间”
+	OLED_ShowChinese(2, 2, 20);
+	OLED_ShowChinese(2, 3, 21);	
+	OLED_ShowChinese(2, 4, 28);
+	OLED_ShowChinese(2, 5, 29);	
+	OLED_ShowChar(2, 11, ':');	
+	OLED_ShowString(2, 13, "xxx");
+	
+	//显示“光照阈值”
+	OLED_ShowChinese(3, 2, 4);
+	OLED_ShowChinese(3, 3, 5);	
+	OLED_ShowChinese(3, 4, 26);
+	OLED_ShowChinese(3, 5, 27);	
+	OLED_ShowChar(3, 11, ':');
+
+	//显示”距离阈值“
+	OLED_ShowChinese(4, 2, 17);
+	OLED_ShowChinese(4, 3, 18);	
+	OLED_ShowChinese(4, 4, 26);
+	OLED_ShowChinese(4, 5, 27);	
+	OLED_ShowChar(4, 11, ':');
+	
+	//显示光照阈值数值
+	OLED_ShowNum(3, 13, Sensorthreshold.Illumination_threshold, 3);
+
+	//显示距离阈值数值
+	OLED_ShowNum(4, 14, Sensorthreshold.Distance_threshold, 2);
+}
+
+/**
+  * @brief  记录阈值界面下按KEY1的次数
+  * @param  无
+  * @retval 返回次数
+  */
+uint8_t SetSelection(void)
+{
+	static uint8_t count = 1;
+	if(KeyNum == KEY_1)
+	{
+		KeyNum = 0;
+		count++;
+		if (count >= 4)
+		{
+			count = 1;
+		}
+	}
+	return count;
+}
+
+/**
+  * @brief  显示阈值界面的选择符号
+  * @param  num 为显示的位置
+  * @retval 无
+  */
+void OLED_Option(uint8_t num)
+{
+	switch(num)
+	{
+		case 1:	
+			OLED_ShowChar(1,1,' ');
+			OLED_ShowChar(2,1,'>');
+			OLED_ShowChar(3,1,' ');
+			OLED_ShowChar(4,1,' ');
+			break;
+		case 2:	
+			OLED_ShowChar(1,1,' ');
+			OLED_ShowChar(2,1,' ');
+			OLED_ShowChar(3,1,'>');
+			OLED_ShowChar(4,1,' ');
+			break;
+		case 3:	
+			OLED_ShowChar(1,1,' ');
+			OLED_ShowChar(2,1,' ');
+			OLED_ShowChar(3,1,' ');
+			OLED_ShowChar(4,1,'>');
+			break;
+		default: break;
+	}
+}
+
+/**
+  * @brief  显示时间调节界面的选择符号
+  * @param  num 为显示的位置
+  * @retval 无
+  */
+void OLED_Time_Option(u8 num)
+{
+	switch(num)
+	{
+		case 1:	
+
+			OLED_ShowChar(2,6,'v');
+			OLED_ShowChar(2,9,' ');
+			OLED_ShowChar(2,12,' ');
+			break;
+		case 2:	
+			OLED_ShowChar(2,6,' ');
+			OLED_ShowChar(2,9,'v');
+			OLED_ShowChar(2,12,' ');
+			break;
+		case 3:	
+			OLED_ShowChar(2,6,' ');
+			OLED_ShowChar(2,9,' ');
+			OLED_ShowChar(2,12,'v');
+			break;
+		default: break;
+	}
+}
+
+/**
+  * @brief  显示时间调节界面的内容
+  * @param  无
+  * @retval 无
+  */
+void OLED_ThresholdTime(void)
+{
+	//系统时间：
+	OLED_ShowChinese(1, 3, 20); 
+	OLED_ShowChinese(1, 4, 21); 
+	OLED_ShowChinese(1, 5, 28); 
+	OLED_ShowChinese(1, 6, 29); 
+	OLED_ShowChar(1, 13, ':');
+
+	OLED_ShowNum(3,5,hour,2);
+	OLED_ShowChar(3,7,':');
+	OLED_ShowNum(3,8,minute,2);
+	OLED_ShowChar(3,10,':');
+	OLED_ShowNum(3,11,second,2);
+}
+
+/**
+  * @brief  对阈值界面的传感器阈值进行修改
+  * @param  num 为当前用户需要更改的传感器阈值位置
+  * @retval 无
+  */
+void ThresholdModification(uint8_t num)
+{
+	switch (num)
+	{
+		case 1:
+			if (KeyNum == KEY_3)
+			{
+				KeyNum = 0;
+				OLED_Clear();
+				menu = timeSettingsPage;
+				
+				hour = MyRTC_Time[3];
+				minute = MyRTC_Time[4];
+				second = MyRTC_Time[5];	
+			}
+			else if (KeyNum == KEY_4)
+			{
+				KeyNum = 0;
+				OLED_Clear();
+				menu = timeSettingsPage;
+				
+				hour = MyRTC_Time[3];
+				minute = MyRTC_Time[4];
+				second = MyRTC_Time[5];
+			}			
+			break;		
+
+		case 2:
+			if (KeyNum == KEY_3)
+			{
+				KeyNum = 0;
+				Sensorthreshold.Illumination_threshold += 10;
+				if (Sensorthreshold.Illumination_threshold > 999)
+				{
+					Sensorthreshold.Illumination_threshold = 1;
+				}
+			}
+			else if (KeyNum == KEY_4)
+			{
+				KeyNum = 0;
+				Sensorthreshold.Illumination_threshold -= 10;
+				if (Sensorthreshold.Illumination_threshold < 1)
+				{
+					Sensorthreshold.Illumination_threshold = 999;
+				}				
+			}			
+			break;
+		case 3:
+			if (KeyNum == KEY_3)
+			{
+				KeyNum = 0;
+				Sensorthreshold.Distance_threshold++;
+				if (Sensorthreshold.Distance_threshold > 99)
+				{
+					Sensorthreshold.Distance_threshold = 1;
+				}
+			}
+			else if (KeyNum == KEY_4)
+			{
+				KeyNum = 0;
+				Sensorthreshold.Distance_threshold--;
+				if (Sensorthreshold.Distance_threshold < 1)
+				{
+					Sensorthreshold.Distance_threshold = 99;
+				}				
+			}
+			break;
+		default: break;		
+	}
+}
+
+/**
+  * @brief  对系统时间进行修改
+  * @param  num 为当前用户需要更改的时分秒位置
+  * @retval 无
+  */
+void TimeModification(uint8_t num)
+{
+	switch (num)
+	{
+		case 1:
+			if (KeyNum == KEY_3)
+			{
+				KeyNum = 0;
+				hour++;
+				if (hour > 24)
+				{
+					hour = 0;
+				}
+			}
+			else if (KeyNum == KEY_4)
+			{
+				KeyNum = 0;
+				hour --;
+				if (hour > 24)
+				{
+					hour = 24;
+				}				
+			}		
+			break;		
+
+		case 2:
+			if (KeyNum == KEY_3)
+			{
+				KeyNum = 0;
+				minute++;
+				if (minute > 60)
+				{
+					minute = 0;
+				}
+			}
+			else if (KeyNum == KEY_4)
+			{
+				KeyNum = 0;
+				minute --;
+				if (minute > 60)
+				{
+					minute = 60;
+				}				
+			}					
+			break;
+		case 3:
+			if (KeyNum == KEY_3)
+			{
+				KeyNum = 0;
+				second++;
+				if (second > 60)
+				{
+					second = 0;
+				}
+			}
+			else if (KeyNum == KEY_4)
+			{
+				KeyNum = 0;
+				second --;
+				if (second > 60)
+				{
+					second = 60;
+				}				
+			}		
+			break;
+		default: break;		
+	}
+}
+
+/**
+  * @brief  获取传感器的数据
+  * @param  无
+  * @retval 无
+  */
+void sensorScan(void)
+{
+		DHT11_Read_Data(&sensorData.humi, &sensorData.temp);
+		HC_SR04_Deboanle(&sensorData.distance);
+		LDR_LuxData(&sensorData.lux);
+		HC_SR501_Input(&sensorData.people);		
+}
+
 
 int main(void)
 {
-	BEEP_Init();
-	delay_init();	    	 //延时函数初始化	
-	BEEP = 0;            //鸣叫提示接入成功
-	delay_ms(250);
-	BEEP = 1;            //蜂鸣器接入成功
-	Usart1_Init(115200);//debug串口
-//	DEBUG_LOG("\r\n");
-//	DEBUG_LOG("UART1初始化			[OK]");//串口接入成功
-	/////////////////////////
+	ADCX_Init();
+	PWM_Init(100 - 1, 720 - 1);
+	Timer2_Init(9,14398);
+	Uart2_Init(9600);
+	Uart1_Init(115200);
+	IWDG_Init();	//初始化看门狗
+	
+	LDR_Init();
 	OLED_Init();
-	sprintf(oledBuf,"Waiting For");
-	///////////////
+	DHT11_Init();
 	LED_Init();
-	LED0 = 0;//PA4引脚的小灯，LED0=1,小灯亮
-	
-	
-	
-	while(1){
-//	DEBUG_LOG("\r\n");
-//	DEBUG_LOG("UART1初始化			[OK]");
-//	BEEP = 0;//鸣叫提示接入成功
-//	delay_ms(250);
-//	BEEP = 1;
-	}
-	
-	
-}
-//	unsigned short timeCount = 0;	//发送间隔变量
-//	unsigned char *dataPtr = NULL;
-//	static u8 lineNow;
-//	Usart1_Init(115200);//debug串口
-//		DEBUG_LOG("\r\n");
-//		DEBUG_LOG("UART1初始化			[OK]");
-//	delay_init();	    	 //延时函数初始化	
-//		DEBUG_LOG("延时函数初始化			[OK]");
-//	OLED_Init();
-//	OLED_ColorTurn(0);//0正常显示，1 反色显示
-//  	OLED_DisplayTurn(0);//0正常显示 1 屏幕翻转显示
-//	OLED_Clear();
-//	 	DEBUG_LOG("OLED1初始化			[OK]");
-//		OLED_Refresh_Line("OLED");
+	Key_Init();
+	HC_SR501_Init();
+	HC_SR04_Init();
+	Buzzer_Init();
+  MyRTC_Init();
 
-//	NVIC_PriorityGroupConfig(NVIC_PriorityGroup_2);// 设置中断优先级分组2
-//		DEBUG_LOG("中断优先初始化			[OK]");
-//		OLED_Refresh_Line("NVIC");
-//	LED_Init();		  	//初始化与LED连接的硬件接口
-//		DEBUG_LOG("LED初始化			[OK]");
-//		OLED_Refresh_Line("Led");
-//	KEY_Init();          	//初始化与按键连接的硬件接口
-//		DEBUG_LOG("按键初始化			[OK]");
-//		OLED_Refresh_Line("Key");
-//	EXTIX_Init();		//外部中断初始化
-//		DEBUG_LOG("外部中断初始化			[OK]");
-//		OLED_Refresh_Line("EXIT");
-//	BEEP_Init();
-//		DEBUG_LOG("蜂鸣器初始化			[OK]");
-//		OLED_Refresh_Line("Beep");
-//	DHT11_Init();
-//		DEBUG_LOG("DHT11初始化			[OK]");
-//		OLED_Refresh_Line("DHT11");
-//	Usart2_Init(115200);//stm32-8266通讯串口
-//		DEBUG_LOG("UART2初始化			[OK]");
-//		OLED_Refresh_Line("Uart2");
-//	
-//		DEBUG_LOG("硬件初始化			[OK]");
-//		
-//	DEBUG_LOG("初始化ESP8266 WIFI模块...");
-//	if(!ESP8266_INIT_OK){
-//		OLED_Clear();
-//		sprintf(oledBuf,"Waiting For");
-//		OLED_ShowString(16,0,(u8*)oledBuf,16);//8*16 “ABC”
-//		sprintf(oledBuf,"WiFi");
-//		OLED_ShowString(48,18,(u8*)oledBuf,16);//8*16 “ABC”
-//		sprintf(oledBuf,"Connection");
-//		OLED_ShowString(24,36,(u8*)oledBuf,16);//8*16 “ABC”
-//		OLED_Refresh();
-//	}
-//	ESP8266_Init();					//初始化ESP8266
-//	OLED_Clear();
-//	sprintf(oledBuf,"Waiting For");
-//	OLED_ShowString(16,0,(u8*)oledBuf,16);//8*16 “ABC”
-//	sprintf(oledBuf,"MQTT Server");
-//	OLED_ShowString(16,18,(u8*)oledBuf,16);//8*16 “ABC”
-//	sprintf(oledBuf,"Connection");
-//	OLED_ShowString(24,36,(u8*)oledBuf,16);//8*16 “ABC”
-//	OLED_Refresh();	
-//	while(OneNet_DevLink()){//接入OneNET
-//		delay_ms(500);
-//	}		
-//	
-//	OLED_Clear();	
-//	
-//	TIM2_Int_Init(4999,7199);
-//	TIM3_Int_Init(2499,7199);
-//	
-//	BEEP = 0;//鸣叫提示接入成功
-//	delay_ms(250);
-//	BEEP = 1;
-//	
-//	OneNet_Subscribe(devSubTopic, 1);
-//	
-//	while(1)
-//	{
-//		if(timeCount%40 == 0){ //1000/25ms
-//				//温湿度传感器数据
-//				DHT11_Read_Data(&temperatureH,&temperatureL,&humidityH,&humidityL);
-//			  DEBUG_LOG(" | 湿度：%d.%d C | 温度：%d.%d %% | 光照度：%.1f lx | 指示灯：%s | 报警器：%s | ",humidityH,humidityL,temperatureH,temperatureL);
-//			if(alarm_is_free == 10)//alarm...>0
-//			{
-//				if(humidityH<80 && temperatureH<40)
-//					alarmFlag=0; //不满足报警条件
-//				else
-//					alarmFlag=1;
-//			}
-//			if(alarm_is_free < 10)
-//				alarm_is_free++;
-//				UsartPrintf(USART_DEBUG,"alarmFlag_is_free = %d\r\n",alarm_is_free);
-//				UsartPrintf(USART_DEBUG,"alarmFlag = %d\r\n",alarmFlag);
-//				delay_ms(1000);//1s检查一次
-//	
-//			}
-//	if(++timeCount >= 200)									//发送间隔5s,5000ms/25ms
-//		{
-//			UsartPrintf(USART_DEBUG, "OneNet_Publish\r\n");
-//			OneNet_Publish("pcTopic", "MQTT Publish Test");		
-//			timeCount = 0;
-//			ESP8266_Clear();
-//		}
-//		dataPtr = ESP8266_GetIPD(3); //*
-//		if(dataPtr != NULL)
-//			OneNet_RevPro(dataPtr);		
-//		delay_ms(10);
-//	}
+	Sensorthreshold.Illumination_threshold = FLASH_R(FLASH_START_ADDR);	//从指定页的地址读FLASH
+	Sensorthreshold.Distance_threshold = FLASH_R(FLASH_START_ADDR+2);	//从指定页的地址读FLASH
+	
+	GENERAL_TIM_Init();
+	userInit();		//完成机智云初始赋值
+	gizwitsInit();	//开辟一个环形缓冲区
+//	GPIO_SetBits(Buzzer_PROT, Buzzer);
+//	Delay_ms(1200);
+	
+	while (1)
+	{
+		
+		IWDG_ReloadCounter(); //重新加载计数值 喂狗
+		sensorScan();	//获取传感器数据
+
+		switch (menu)
+		{
+			case display_page:
+
+				MyRTC_ReadTime();	//调用此函数后，RTC硬件电路里时间值将刷新到全局数组
+				OLED_Menu_SensorData();	//显示主页面传感器数据、系统模式等内容
+				OLED_Menu();	//显示主页面的固定内容
+				if (!systemModel)
+				{
+					LED_PWM_KEY();	//按键控制LED的PWM			
+				}
+
+				//切换系统模式
+				if (KeyNum == KEY_1)
+				{
+					KeyNum = 0;
+					systemModel = ~systemModel;
+					if (systemModel)
+					{
+						currentDataPoint.valueModel = 1;
+					}
+					else
+					{
+						currentDataPoint.valueModel = 0;
+					}
+				}				
+				
+				//判断是否进入阈值设置界面
+				if (KeyNum == KEY_Long1)
+				{
+					KeyNum = 0;
+					OLED_Clear();	//清屏
+					menu = settingsPage;	//跳转到阈值设置界面
+				}
+				break;
+			case settingsPage:
+				OLED_SetInterfacevoid();	//显示阈值设置界面的固定内容
+				OLED_Option(SetSelection());	//实现阈值设置页面的选择功能
+				ThresholdModification(SetSelection());	//实现阈值调节功能	
+			
+				//判断是否退出阈值设置界面
+				if (KeyNum == KEY_2)
+				{
+					KeyNum = 0;
+					OLED_Clear();	//清屏
+					menu = display_page;	//跳转到主界面
+
+					//存储修改的传感器阈值至flash内				
+					FLASH_W(FLASH_START_ADDR, Sensorthreshold.Illumination_threshold, Sensorthreshold.Distance_threshold);
+					currentDataPoint.valueIllumination_threshold = Sensorthreshold.Illumination_threshold;
+					currentDataPoint.valueDistance_threshold = Sensorthreshold.Distance_threshold;
+				}
+				break;
+			case timeSettingsPage:
+				OLED_ThresholdTime();	//显示时间设置界面的内容
+				OLED_Time_Option(SetSelection());	//实现间设置界面的选择功能
+				TimeModification(SetSelection());	//实现时间调节功能	
+				
+				//判断是否退出时间设置界面
+				if (KeyNum == KEY_2)
+				{
+					KeyNum = 0;
+					//将更改的数据赋值回RTC数组中
+					MyRTC_Time[3] = hour;	
+					MyRTC_Time[4] = minute;
+					MyRTC_Time[5] = second;		
+					MyRTC_SetTime();	//调用此函数后，全局数组里时间值将刷新到RTC硬件电路	
+		
+					OLED_Clear();	//清屏
+					menu = settingsPage;	//回到阈值设置界面
+				}
+				break;
+		}	
+		//判断上位机是否更改阈值，如更改则保存至flash中
+		if (valueFlashflag)
+		{
+			valueFlashflag = 0;
+			//存储修改的传感器阈值至flash内				
+			FLASH_W(FLASH_START_ADDR, Sensorthreshold.Illumination_threshold, Sensorthreshold.Distance_threshold);
+		}
+
+		userHandle();	//更新机智云数据点变量存储的值
+		gizwitsHandle((dataPoint_t *)&currentDataPoint);	//数据上传至机智云					
+	}
+}
