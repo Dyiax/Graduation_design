@@ -336,7 +336,7 @@
               <MiscControls></MiscControls>
               <Define>USE_STDPERIPH_DRIVER</Define>
               <Undefine></Undefine>
-              <IncludePath>.\Start;.\User;.\Library;.\Hardware;.\System;.\Gizwits;.\Utils</IncludePath>
+              <IncludePath>.\Start;.\User;.\Library;.\Hardware;.\System;.\esp8266</IncludePath>
             </VariousControls>
           </Cads>
           <Aads>
@@ -860,75 +860,35 @@
               <FileType>5</FileType>
               <FilePath>.\System\IWDG.h</FilePath>
             </File>
-          </Files>
-        </Group>
-        <Group>
-          <GroupName>Gizwits</GroupName>
-          <Files>
             <File>
-              <FileName>gizwits_product.c</FileName>
-              <FileType>1</FileType>
-              <FilePath>.\Gizwits\gizwits_product.c</FilePath>
-            </File>
-            <File>
-              <FileName>gizwits_product.h</FileName>
+              <FileName>GPIOLIKE51.h</FileName>
               <FileType>5</FileType>
-              <FilePath>.\Gizwits\gizwits_product.h</FilePath>
+              <FilePath>.\System\GPIOLIKE51.h</FilePath>
             </File>
             <File>
-              <FileName>gizwits_protocol.c</FileName>
+              <FileName>sys.c</FileName>
               <FileType>1</FileType>
-              <FilePath>.\Gizwits\gizwits_protocol.c</FilePath>
+              <FilePath>.\System\sys.c</FilePath>
             </File>
             <File>
-              <FileName>gizwits_protocol.h</FileName>
+              <FileName>sys.h</FileName>
               <FileType>5</FileType>
-              <FilePath>.\Gizwits\gizwits_protocol.h</FilePath>
+              <FilePath>.\System\sys.h</FilePath>
             </File>
           </Files>
         </Group>
         <Group>
-          <GroupName>Utils</GroupName>
+          <GroupName>esp8266</GroupName>
           <Files>
             <File>
-              <FileName>common.c</FileName>
+              <FileName>esp8266.c</FileName>
               <FileType>1</FileType>
-              <FilePath>.\Utils\common.c</FilePath>
+              <FilePath>.\esp8266\esp8266.c</FilePath>
             </File>
             <File>
-              <FileName>common.h</FileName>
+              <FileName>esp8266.h</FileName>
               <FileType>5</FileType>
-              <FilePath>.\Utils\common.h</FilePath>
-            </File>
-            <File>
-              <FileName>dataPointTools.c</FileName>
-              <FileType>1</FileType>
-              <FilePath>.\Utils\dataPointTools.c</FilePath>
-            </File>
-            <File>
-              <FileName>dataPointTools.h</FileName>
-              <FileType>5</FileType>
-              <FilePath>.\Utils\dataPointTools.h</FilePath>
-            </File>
-            <File>
-              <FileName>gagent_md5.c</FileName>
-              <FileType>1</FileType>
-              <FilePath>.\Utils\gagent_md5.c</FilePath>
-            </File>
-            <File>
-              <FileName>gagent_md5.h</FileName>
-              <FileType>5</FileType>
-              <FilePath>.\Utils\gagent_md5.h</FilePath>
-            </File>
-            <File>
-              <FileName>ringbuffer.c</FileName>
-              <FileType>1</FileType>
-              <FilePath>.\Utils\ringbuffer.c</FilePath>
-            </File>
-            <File>
-              <FileName>ringBuffer.h</FileName>
-              <FileType>5</FileType>
-              <FilePath>.\Utils\ringBuffer.h</FilePath>
+              <FilePath>.\esp8266\esp8266.h</FilePath>
             </File>
           </Files>
         </Group>

@@ -34,16 +34,5 @@
 .\objects\tim2.o: .\System\delay.h
 .\objects\tim2.o: .\Hardware\oled.h
 .\objects\tim2.o: .\Hardware\led.h
-.\objects\tim2.o: .\Gizwits\gizwits_product.h
-.\objects\tim2.o: .\Gizwits\gizwits_protocol.h
-.\objects\tim2.o: D:\keil c51\ARM\ARMCC\Bin\..\include\stdbool.h
-.\objects\tim2.o: D:\keil c51\ARM\ARMCC\Bin\..\include\stdio.h
-.\objects\tim2.o: D:\keil c51\ARM\ARMCC\Bin\..\include\stdlib.h
-.\objects\tim2.o: D:\keil c51\ARM\ARMCC\Bin\..\include\string.h
-.\objects\tim2.o: .\Utils\common.h
-.\objects\tim2.o: D:\keil c51\ARM\ARMCC\Bin\..\include\ctype.h
-.\objects\tim2.o: .\Utils\gagent_md5.h
-.\objects\tim2.o: .\Hardware\sensormodules.h
-.\objects\tim2.o: .\System\tim2.h
 .\objects\tim2.o: .\Hardware\buzzer.h
 .\objects\tim2.o: System\myrtc.h

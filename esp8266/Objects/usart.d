@@ -1,5 +1,5 @@
 .\objects\usart.o: System\Usart.c
-.\objects\usart.o: System\usart.h
+.\objects\usart.o: System\Usart.h
 .\objects\usart.o: D:\keil c51\ARM\ARMCC\Bin\..\include\stdio.h
 .\objects\usart.o: .\Start\stm32f10x.h
 .\objects\usart.o: .\Start\core_cm3.h
@@ -30,22 +30,6 @@
 .\objects\usart.o: .\Library\stm32f10x_usart.h
 .\objects\usart.o: .\Library\stm32f10x_wwdg.h
 .\objects\usart.o: .\Library\misc.h
-.\objects\usart.o: .\Gizwits\gizwits_product.h
-.\objects\usart.o: .\Gizwits\gizwits_protocol.h
-.\objects\usart.o: D:\keil c51\ARM\ARMCC\Bin\..\include\stdbool.h
-.\objects\usart.o: D:\keil c51\ARM\ARMCC\Bin\..\include\stdlib.h
+.\objects\usart.o: System\sys.h
+.\objects\usart.o: D:\keil c51\ARM\ARMCC\Bin\..\include\stdarg.h
 .\objects\usart.o: D:\keil c51\ARM\ARMCC\Bin\..\include\string.h
-.\objects\usart.o: .\Utils\common.h
-.\objects\usart.o: D:\keil c51\ARM\ARMCC\Bin\..\include\ctype.h
-.\objects\usart.o: .\Utils\gagent_md5.h
-.\objects\usart.o: .\Hardware\sensormodules.h
-.\objects\usart.o: .\System\tim2.h
-.\objects\usart.o: .\Hardware\key.h
-.\objects\usart.o: .\Hardware\hc_sr04.h
-.\objects\usart.o: .\System\delay.h
-.\objects\usart.o: .\Hardware\oled.h
-.\objects\usart.o: .\Hardware\led.h
-.\objects\usart.o: .\Gizwits\gizwits_product.h
-.\objects\usart.o: .\System\tim2.h
-.\objects\usart.o: .\Hardware\buzzer.h
-.\objects\usart.o: .\System\myrtc.h

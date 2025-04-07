@@ -37,16 +37,6 @@
 .\objects\main.o: .\System\pwm.h
 .\objects\main.o: .\Hardware\led.h
 .\objects\main.o: .\Hardware\key.h
-.\objects\main.o: .\Gizwits\gizwits_product.h
-.\objects\main.o: .\Gizwits\gizwits_protocol.h
-.\objects\main.o: D:\keil c51\ARM\ARMCC\Bin\..\include\stdbool.h
-.\objects\main.o: D:\keil c51\ARM\ARMCC\Bin\..\include\stdio.h
-.\objects\main.o: D:\keil c51\ARM\ARMCC\Bin\..\include\stdlib.h
-.\objects\main.o: D:\keil c51\ARM\ARMCC\Bin\..\include\string.h
-.\objects\main.o: .\Utils\common.h
-.\objects\main.o: D:\keil c51\ARM\ARMCC\Bin\..\include\ctype.h
-.\objects\main.o: .\Utils\gagent_md5.h
-.\objects\main.o: .\Hardware\sensormodules.h
 .\objects\main.o: .\System\tim2.h
 .\objects\main.o: .\Hardware\hc_sr04.h
 .\objects\main.o: .\Hardware\led.h
@@ -54,6 +44,8 @@
 .\objects\main.o: .\System\myrtc.h
 .\objects\main.o: .\System\tim3.h
 .\objects\main.o: .\Hardware\hc_sr501.h
+.\objects\main.o: .\Hardware\sensormodules.h
 .\objects\main.o: .\System\usart.h
+.\objects\main.o: D:\keil c51\ARM\ARMCC\Bin\..\include\stdio.h
 .\objects\main.o: .\System\flash.h
 .\objects\main.o: .\System\iwdg.h

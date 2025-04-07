@@ -12,7 +12,7 @@
 #include "hc_sr04.h"
 #include "sensormodules.h"
 #include "usart.h"
-#include "gizwits_product.h"
+//#include "gizwits_product.h"
 #include "myrtc.h"
 #include "flash.h"
 #include "iwdg.h"
@@ -110,7 +110,7 @@ void OLED_Menu_SensorData(void)
 		OLED_ShowNum(3, 14, sensorData.distance, 2);
 
 		//显示亮度等级
-		OLED_ShowNum(4, 6, ledDutyRatio, 3);
+//		OLED_ShowNum(4, 6, ledDutyRatio, 3);
 		OLED_ShowChar(4, 9, '%');	
 	
 		//显示是否有人
@@ -452,28 +452,28 @@ int main(void)
 	ADCX_Init();
 	PWM_Init(100 - 1, 720 - 1);
 	Timer2_Init(9,14398);
-	Uart2_Init(9600);
+	Uart2_Init(115200);
 	Uart1_Init(115200);
 	IWDG_Init();	//初始化看门狗
 	
 	LDR_Init();
-	OLED_Init();
+	OLED_Init();   
 	DHT11_Init();
-	LED_Init();
+	//LED_Init();
 	Key_Init();
-	HC_SR501_Init();
-	HC_SR04_Init();
-	Buzzer_Init();
+	HC_SR501_Init();    //人体红外
+	HC_SR04_Init();			//超声波测距
+	//Buzzer_Init();
   MyRTC_Init();
 
 	Sensorthreshold.Illumination_threshold = FLASH_R(FLASH_START_ADDR);	//从指定页的地址读FLASH
 	Sensorthreshold.Distance_threshold = FLASH_R(FLASH_START_ADDR+2);	//从指定页的地址读FLASH
 	
 	GENERAL_TIM_Init();
-	userInit();		//完成机智云初始赋值
-	gizwitsInit();	//开辟一个环形缓冲区
-//	GPIO_SetBits(Buzzer_PROT, Buzzer);
-//	Delay_ms(1200);
+	//userInit();		//完成机智云初始赋值
+	//gizwitsInit();	//开辟一个环形缓冲区，
+	//	GPIO_SetBits(Buzzer_PROT, Buzzer);
+	//	Delay_ms(1200);
 	
 	while (1)
 	{
@@ -490,23 +490,23 @@ int main(void)
 				OLED_Menu();	//显示主页面的固定内容
 				if (!systemModel)
 				{
-					LED_PWM_KEY();	//按键控制LED的PWM			
+					//LED_PWM_KEY();	//按键控制LED的PWM			
 				}
 
-				//切换系统模式
-				if (KeyNum == KEY_1)
-				{
-					KeyNum = 0;
-					systemModel = ~systemModel;
-					if (systemModel)
-					{
-						currentDataPoint.valueModel = 1;
-					}
-					else
-					{
-						currentDataPoint.valueModel = 0;
-					}
-				}				
+//				//切换系统模式
+//				if (KeyNum == KEY_1)
+//				{
+//					KeyNum = 0;
+//					systemModel = ~systemModel;
+//					if (systemModel)
+//					{
+//						currentDataPoint.valueModel = 1;
+//					}
+//					else
+//					{
+//						currentDataPoint.valueModel = 0;
+//					}
+//				}				
 				
 				//判断是否进入阈值设置界面
 				if (KeyNum == KEY_Long1)
@@ -530,8 +530,8 @@ int main(void)
 
 					//存储修改的传感器阈值至flash内				
 					FLASH_W(FLASH_START_ADDR, Sensorthreshold.Illumination_threshold, Sensorthreshold.Distance_threshold);
-					currentDataPoint.valueIllumination_threshold = Sensorthreshold.Illumination_threshold;
-					currentDataPoint.valueDistance_threshold = Sensorthreshold.Distance_threshold;
+//					currentDataPoint.valueIllumination_threshold = Sensorthreshold.Illumination_threshold;
+//					currentDataPoint.valueDistance_threshold = Sensorthreshold.Distance_threshold;
 				}
 				break;
 			case timeSettingsPage:
@@ -554,15 +554,15 @@ int main(void)
 				}
 				break;
 		}	
-		//判断上位机是否更改阈值，如更改则保存至flash中
-		if (valueFlashflag)
-		{
-			valueFlashflag = 0;
-			//存储修改的传感器阈值至flash内				
-			FLASH_W(FLASH_START_ADDR, Sensorthreshold.Illumination_threshold, Sensorthreshold.Distance_threshold);
-		}
+//		//判断上位机是否更改阈值，如更改则保存至flash中
+//		if (valueFlashflag)
+//		{
+//			valueFlashflag = 0;
+//			//存储修改的传感器阈值至flash内				
+//			FLASH_W(FLASH_START_ADDR, Sensorthreshold.Illumination_threshold, Sensorthreshold.Distance_threshold);
+//		}
 
-		userHandle();	//更新机智云数据点变量存储的值
-		gizwitsHandle((dataPoint_t *)&currentDataPoint);	//数据上传至机智云					
+//		userHandle();	//更新机智云数据点变量存储的值
+//		gizwitsHandle((dataPoint_t *)&currentDataPoint);	//数据上传至机智云					
 	}
 }

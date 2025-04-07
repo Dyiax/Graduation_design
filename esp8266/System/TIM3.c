@@ -1,5 +1,5 @@
 #include "tim3.h"
-#include "gizwits_product.h"
+//#include "gizwits_product.h"
   
 static void GENERAL_TIM_NVIC_Config(void)
 {
@@ -55,7 +55,7 @@ void TIM3_IRQHandler(void)
 		if ( TIM_GetITStatus( TIM3, TIM_IT_Update) != RESET ) 
 		{	
 				TIM_ClearITPendingBit(TIM3 , TIM_FLAG_Update);  	
-				gizTimerMs();
+				//gizTimerMs();
 		}		 	
 }
 

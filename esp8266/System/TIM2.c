@@ -67,24 +67,24 @@ void TIM2_IRQHandler(void)	//2ms定时中断
 		if(delay20ms < 10)
 		{
 			delay20ms = 0;
-			LED_APP_Command();	
+			//LED_APP_Command();	
 		}
 		
-		//距离阈值报警
-		if ((currentDataPoint.valueDistance_threshold > sensorData.distance) && systemModel)
-		{
-			Buzzer_ON();
-		}
-		else
-		{
-			Buzzer_OFF();
-		}
-		
+//		//距离阈值报警
+//		if ((currentDataPoint.valueDistance_threshold > sensorData.distance) && systemModel)
+//		{
+//			Buzzer_ON();
+//		}
+//		else
+//		{
+//			Buzzer_OFF();
+//		}
+//		
 		//机智云配网按键，可以重新进行配网。	
 		if((KeyNum == 44)) 
 		{
 			KeyNum = 0;
-			gizwitsSetMode(2);
+			//gizwitsSetMode(2);
 			Buzzer_ON();
 			Delay_ms(300);
 			Buzzer_OFF();

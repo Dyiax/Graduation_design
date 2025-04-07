@@ -44,12 +44,8 @@
 ".\objects\myrtc.o"
 ".\objects\flash.o"
 ".\objects\iwdg.o"
-".\objects\gizwits_product.o"
-".\objects\gizwits_protocol.o"
-".\objects\common.o"
-".\objects\datapointtools.o"
-".\objects\gagent_md5.o"
-".\objects\ringbuffer.o"
+".\objects\sys.o"
+".\objects\esp8266.o"
 --strict --scatter ".\Objects\Project.sct"
 --summary_stderr --info summarysizes --map --load_addr_map_info --xref --callgraph --symbols
 --info sizes --info totals --info unused --info veneers

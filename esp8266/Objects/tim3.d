@@ -29,23 +29,3 @@
 .\objects\tim3.o: .\Library\stm32f10x_usart.h
 .\objects\tim3.o: .\Library\stm32f10x_wwdg.h
 .\objects\tim3.o: .\Library\misc.h
-.\objects\tim3.o: .\Gizwits\gizwits_product.h
-.\objects\tim3.o: .\Gizwits\gizwits_protocol.h
-.\objects\tim3.o: D:\keil c51\ARM\ARMCC\Bin\..\include\stdbool.h
-.\objects\tim3.o: D:\keil c51\ARM\ARMCC\Bin\..\include\stdio.h
-.\objects\tim3.o: D:\keil c51\ARM\ARMCC\Bin\..\include\stdlib.h
-.\objects\tim3.o: D:\keil c51\ARM\ARMCC\Bin\..\include\string.h
-.\objects\tim3.o: .\Utils\common.h
-.\objects\tim3.o: D:\keil c51\ARM\ARMCC\Bin\..\include\ctype.h
-.\objects\tim3.o: .\Utils\gagent_md5.h
-.\objects\tim3.o: .\Hardware\sensormodules.h
-.\objects\tim3.o: .\System\tim2.h
-.\objects\tim3.o: .\Hardware\key.h
-.\objects\tim3.o: .\Hardware\hc_sr04.h
-.\objects\tim3.o: .\System\delay.h
-.\objects\tim3.o: .\Hardware\oled.h
-.\objects\tim3.o: .\Hardware\led.h
-.\objects\tim3.o: .\Gizwits\gizwits_product.h
-.\objects\tim3.o: .\System\tim2.h
-.\objects\tim3.o: .\Hardware\buzzer.h
-.\objects\tim3.o: .\System\myrtc.h
